@@ -1,4 +1,4 @@
-// Run from a DSH Windows shell. --browser also exercises the native Web UI.
+// 在 DSH 的 Windows shell 中运行。加 --browser 还会验证原生 Web UI。
 import assert from 'node:assert/strict'
 import { spawn } from 'node:child_process'
 import { once } from 'node:events'

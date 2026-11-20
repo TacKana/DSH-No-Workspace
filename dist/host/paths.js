@@ -1,20 +1,19 @@
 import { mkdir, rmdir } from 'node:fs/promises';
 import path from 'node:path';
 import { randomUUID } from 'node:crypto';
-/** Folder name prefix shared with the client's identity check. */
+/** 与客户端身份检查共用的文件夹名前缀。 */
 export const DIRECTORY_PREFIX = 'dsh-chat-';
-/** Private permissions for everything this plugin creates. */
+/** 本插件所创建的一切所用的私有权限。 */
 const DIRECTORY_MODE = 0o700;
 /**
- * Resolve the configured conversation root.
+ * 解析配置的会话根目录。
  *
- * An explicitly configured absolute path wins. Otherwise the directory sits
- * inside the launched profile, which the launcher publishes as
- * `ctx.profileContext` (with `DSH_PROFILE_DIR` as the fallback for contexts
- * that do not expose it).
- * @param configured - value of the `root` loader-row option.
- * @param profileDir - profile directory, when the launcher provides one.
- * @returns an absolute directory, or `undefined` when none can be determined.
+ * 显式配置的绝对路径优先。否则该目录位于已启动的 profile 之内，
+ * 由启动器通过 `ctx.profileContext` 发布（对于不暴露它的上下文，
+ * 则以 `DSH_PROFILE_DIR` 作为回退）。
+ * @param configured - `root` loader 行选项的值。
+ * @param profileDir - 启动器提供时的 profile 目录。
+ * @returns 一个绝对目录；当无法确定时返回 `undefined`。
  */
 export function resolveRoot(configured, profileDir) {
     const candidate = configured.length > 0
@@ -24,41 +23,40 @@ export function resolveRoot(configured, profileDir) {
             : path.join(profileDir, 'session-workspaces');
     if (candidate.length === 0 || !path.isAbsolute(candidate))
         return undefined;
-    // `\foo`/`/foo` are drive-relative on Windows: they look absolute to node:path
-    // but resolve against the current drive, so the folder would land elsewhere.
+    // `\foo`/`/foo` 在 Windows 上是驱动器相对路径：node:path 会把它们看作绝对路径，
+    // 但实际上会相对当前驱动器解析，文件夹就会落到别处。
     if (process.platform === 'win32' && /^[\\/](?![\\/])/.test(candidate))
         return undefined;
     return candidate;
 }
 /**
- * Allocate one directory name. The SessionId is chosen here and the folder is
- * named after it, so the client can recognise its own conversations from the
- * persisted `cwd` alone — no side-channel metadata, and it survives a refresh
- * or a different device.
- * @param root - absolute conversation root.
- * @returns the pre-allocated SessionId and its directory.
+ * 分配一个目录名。SessionId 在此处选定，文件夹以其命名，
+ * 因此客户端仅凭持久化的 `cwd` 就能识别自己的会话 ——
+ * 无需任何旁路元数据，并且能经受刷新或换用不同设备。
+ * @param root - 绝对会话根目录。
+ * @returns 预先分配的 SessionId 及其目录。
  */
 export function allocate(root) {
     const sessionId = randomUUID();
     return { sessionId, cwd: path.join(root, `${DIRECTORY_PREFIX}${sessionId}`) };
 }
 /**
- * Create the root and the new conversation directory.
- * The leaf `mkdir` is deliberately non-recursive: an existing directory with
- * the same name means the allocation collided and must not be reused.
- * @param allocation - directory to create.
- * @param root - absolute conversation root.
+ * 创建根目录和新的会话目录。
+ * 末尾的 `mkdir` 有意设为非递归：若同名目录已存在，
+ * 说明分配发生了冲突，不可复用。
+ * @param allocation - 要创建的目录。
+ * @param root - 绝对会话根目录。
  */
 export async function createDirectory(allocation, root) {
     await mkdir(root, { recursive: true, mode: DIRECTORY_MODE });
     await mkdir(allocation.cwd, { mode: DIRECTORY_MODE });
 }
 /**
- * Remove a directory that this request created and then failed to bind.
- * `rmdir` only succeeds on an empty directory, so nothing a user or the agent
- * wrote can be lost here.
- * @param cwd - directory to remove.
- * @param warn - logger used when the directory is not empty.
+ * 删除本请求创建但随后绑定失败的目录。
+ * `rmdir` 只在空目录上成功，因此用户或 agent 写入的
+ * 任何内容都不会在此丢失。
+ * @param cwd - 要删除的目录。
+ * @param warn - 目录非空时使用的 logger。
  */
 export async function discardDirectory(cwd, warn) {
     try {

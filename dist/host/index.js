@@ -1,16 +1,15 @@
 /**
- * `@local/dsh-no-workspace` — Host entry.
+ * `@local/dsh-no-workspace` —— Host 入口。
  *
- * The plugin is a bundle row: `cordis.patch.yml` inserts `no-workspace`, whose
- * `Config` is `{ root }`. Everything the Host does lives in `service.ts`.
+ * 该插件是一个 bundle 行：`cordis.patch.yml` 插入 `no-workspace`，其
+ * `Config` 为 `{ root }`。Host 的一切行为都位于 `service.ts` 中。
  */
 import { Remote } from '@deepseek-ai/dsh-typert-protocol';
 import NoWorkspaceService from './service.js';
 export default NoWorkspaceService;
-// DSH discovers Remote methods from decorator metadata. This entry is plain ESM
-// with no build-time decorator transform, so the decorator is applied to the
-// prototype directly; its initializer target is the instance prototype, exactly
-// what TypeScript's `@Remote` would produce.
+// DSH 从装饰器元数据中发现 Remote 方法。本入口是纯 ESM，
+// 没有构建期的装饰器变换，因此装饰器直接应用于原型；
+// 其初始化目标就是实例原型，与 TypeScript 的 `@Remote` 所产生的结果完全一致。
 const prototype = NoWorkspaceService.prototype;
 Remote(prototype.create, {
     kind: 'method',

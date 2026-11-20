@@ -11,9 +11,9 @@ import type {
 } from './types.js'
 
 /**
- * Read one service without assuming it is present.
- * `ctx.get` returns `undefined` for services outside the plugin's `inject`
- * list, which is also what a hardened build looks like after a rename.
+ * 读取一个服务，但不假设它存在。
+ * 对于插件 `inject` 列表之外的服务，`ctx.get` 返回 `undefined`，
+ * 这也是重命名后经过加固的构建所呈现的样子。
  */
 export function service<T>(ctx: ClientContext, name: string): T | undefined {
   const value = ctx.get(name)
@@ -62,7 +62,7 @@ export function locale(ctx: ClientContext): Locale | undefined {
     : undefined
 }
 
-/** Read a member that older DSH builds may not implement. */
+/** 读取一个较旧 DSH 构建可能未实现的成员。 */
 export function supports<T extends object, K extends keyof T>(value: T, member: K): boolean {
   return typeof value[member] === 'function'
 }

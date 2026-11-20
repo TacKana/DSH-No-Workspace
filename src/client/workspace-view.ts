@@ -4,37 +4,36 @@ import type { Text } from './locale.js'
 import { noWorkspaceOption } from './options.js'
 import { cwdOf, identityOf, summaryOf } from './sessions.js'
 
-/** At most one entry per recently seen Session identity and directory. */
+/** 每个最近见过的会话身份与目录至多保留一个条目。 */
 const MAX_SOURCES = 16
 
-/** One derived Session-scope view of the Workspace list. */
+/** 工作区列表的一个派生的会话作用域视图。 */
 interface View {
   list: WorkspaceSnapshot | undefined
   row: WorkspaceView | undefined
   snapshot: WorkspaceSnapshot | undefined
 }
 
-/** The observable shape handed to the Session-scope hook. */
+/** 交给会话作用域钩子的可观察形状。 */
 interface ShadowSource {
   getSnapshot(): WorkspaceSnapshot
   subscribe(listener: () => void): () => void
 }
 
 /**
- * Shadow the standard `useWorkspaces` hook at Session scope so a conversation
- * sees the real Workspace list plus one extra row naming this plugin's own
- * automatic directory.
+ * 在会话作用域遮蔽标准的 `useWorkspaces` 钩子，使一个对话
+ * 既能看到真实的工作区列表，又能看到额外一行，该行命名此插件自己的
+ * 自动目录。
  *
- * `ConversationContent` disables the Hero composer exactly when no Workspace
- * lists the Session and the list is ready, so that row is what gives a blank
- * standalone Session a title (不在工作区中工作). The Host list, the sidebar and
- * the picker's own data are never modified, and dropping the provider on unload
- * restores the untouched root view.
- * @param uiSession - Session-scope service (`ctx.get('uiSession')`).
- * @param workspaces - Workspace controller (`ctx.get('workspaces')`).
- * @param sessions - Session controller (`ctx.get('sessions')`).
- * @param text - localized labels and the revision that changes them.
- * @returns plugin teardown.
+ * 当没有任何工作区列出该会话且列表已就绪时，`ConversationContent` 会恰好禁用
+ * Hero 编写器，因此那个行正是为空白独立会话提供标题（不在工作区中工作）的东西。
+ * Host 列表、侧边栏和选择器自身的数据从不被修改，并且在卸载时移除该提供者
+ * 会恢复未受影响的根视图。
+ * @param uiSession - 会话作用域服务（`ctx.get('uiSession')`）。
+ * @param workspaces - 工作区控制器（`ctx.get('workspaces')`）。
+ * @param sessions - 会话控制器（`ctx.get('sessions')`）。
+ * @param text - 本地化标签以及改变它们的修订版本号。
+ * @returns 插件拆除函数。
  */
 export function installWorkspacePickerView(
   uiSession: UiSession,
@@ -45,13 +44,13 @@ export function installWorkspacePickerView(
   const current = uiSession.adapter.current
   const sources = new Map<string, ShadowSource>()
 
-  /** A view of the root list, with one extra row for the plugin's own Session. */
+  /** 根列表的一个视图，为插件自己的会话额外加一行。 */
   function build(sessionId: string, standalone: boolean, title: string): ShadowSource {
     const entry: View = { list: undefined, row: undefined, snapshot: undefined }
     return {
       getSnapshot(): WorkspaceSnapshot {
-        // A conversation inside a real Workspace reads the untouched root list;
-        // the menu action for leaving it is mirrored into the menu's own DOM.
+        // 真实工作区内的对话读取未受影响的根列表；
+        // 用于离开它的菜单操作被镜像到菜单自己的 DOM 中。
         if (!standalone) return workspaces.list.getSnapshot()
         const list = workspaces.list.getSnapshot()
         if (entry.list === list && entry.snapshot !== undefined) return entry.snapshot
@@ -73,10 +72,10 @@ export function installWorkspacePickerView(
     }
   }
 
-  /** Source handed to one Session binding; the root list outside one. */
+  /** 交给一个会话绑定的源；在会话之外则为根列表。 */
   const sourceFor = (rawSessionId: string | undefined) => {
     const sessionId = rawSessionId !== undefined && rawSessionId.length > 0 ? rawSessionId : undefined
-    // No conversation selected: hand out the root list untouched.
+    // 未选择对话：交回未受影响的根列表。
     if (sessionId === undefined) return workspaces.list
     const cwd = cwdOf(sessions, sessionId)
     const standalone = isStandaloneSession(sessionId, cwd)
@@ -94,12 +93,12 @@ export function installWorkspacePickerView(
   let installingProvider = false
   const syncProvider = (): void => {
     const sessionId = identityOf(current.getSnapshot())
-    // The summary caught up with the creation hand-off: drop it.
+    // 摘要已赶上创建交接：丢弃它。
     if (sessionId !== undefined) settlePending(sessionId, summaryOf(sessions, sessionId)?.cwd)
-    // A Session-scoped hook is declared for every Session binding at once, so
-    // this contribution exists only while a conversation is selected. Outside
-    // one (the cold Hero) the root provider must stay untouched, or the
-    // declared-but-absent hook would shadow it with `undefined`.
+    // 会话作用域的钩子会一次性为每个会话绑定声明，因此
+    // 此贡献仅在选中对话时存在。在对话之外
+    // （冷启动 Hero）根提供者必须保持未受影响，否则
+    // 已声明但不存在的钩子会用 `undefined` 遮蔽它。
     if (sessionId === undefined) {
       if (providerDispose !== undefined) {
         const dispose = providerDispose
@@ -108,9 +107,8 @@ export function installWorkspacePickerView(
       }
       return
     }
-    // Registering a descriptor rebuilds every binding and publishes the current
-    // one, which re-enters this listener; the flag keeps that re-entry from
-    // registering the same hook twice (a duplicate hook throws).
+    // 注册描述符会重建每个绑定并发布当前绑定，这会重新进入此监听器；
+    // 该标志防止那次重入把同一个钩子注册两次（重复的钩子会抛出异常）。
     if (providerDispose === undefined && !installingProvider) {
       installingProvider = true
       try {

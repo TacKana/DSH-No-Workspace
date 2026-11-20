@@ -12,10 +12,10 @@ import { conversation as conversationService, layout as layoutService, sessions 
 import { currentNewConversation } from './sessions.js'
 import { createUngroupedSession, type CreatedSession } from './standalone.js'
 
-/** Options accepted by the two wrapped entry points; callers are untyped. */
+/** 两个被包装入口点接受的选项；调用方是无类型的。 */
 type EntryOptions = StartSessionOptions | undefined
 
-/** Whether the caller asked the blank Session to adopt initial content. */
+/** 调用方是否要求空白会话采用初始内容。 */
 export function wantsDraftInitialization(draftOptions: DraftOptions | undefined): boolean {
   if (draftOptions === undefined) return false
   return (
@@ -24,24 +24,23 @@ export function wantsDraftInitialization(draftOptions: DraftOptions | undefined)
   )
 }
 
-/** What the picker action needs from this entry. */
+/** 选择器操作需要从此入口获得的内容。 */
 export interface NavigationHandle {
-  /** The native service exposes `openWorkspace`, so the picker can be extended. */
+  /** 原生服务暴露了 `openWorkspace`，因此选择器可以被扩展。 */
   wrapsOpenWorkspace: boolean
-  /** Start a standalone conversation as if the picker sentinel had been chosen. */
+  /** 开始一个独立对话，就像已选择了选择器哨兵一样。 */
   openOption(): Promise<void> | undefined
 }
 
 /**
- * Take over the native "new conversation" entry points.
+ * 接管原生的“新对话”入口点。
  *
- * `startSession` is the single entry behind the global New Session button, the
- * built-in shortcut and the Workspace rows; `openWorkspace` is what the Hero
- * picker calls when a Workspace row is chosen. Both keep the native behaviour
- * whenever the caller named something explicit, and only an unnamed new
- * conversation is redirected into a private directory.
- * @param ctx - client plugin context.
- * @returns the picker hook, or `undefined` when the service is unavailable.
+ * `startSession` 是全局“新建会话”按钮、内置快捷键和工作区行
+ * 背后的唯一条目；`openWorkspace` 是 Hero 选择器在选中工作区行时
+ * 调用的东西。每当调用方明确命名了某项内容时，两者都保留原生行为，
+ * 只有未命名的新对话才会被重定向到私有目录。
+ * @param ctx - 客户端插件上下文。
+ * @returns 选择器钩子；当服务不可用时为 `undefined`。
  */
 export function installNavigation(ctx: ClientContext): NavigationHandle | undefined {
   const resolved = ctx.get('uiWorkspace') as UiWorkspace | undefined
@@ -51,8 +50,8 @@ export function installNavigation(ctx: ClientContext): NavigationHandle | undefi
   }
   const service: UiWorkspace = resolved
 
-  // Remember whether the wrapped methods were own properties so disposal can put
-  // the object back exactly as it was (normally they live on the prototype).
+  // 记住被包装的方法是否为自有属性，以便处置时能把对象
+  // 精确还原成原来的样子（通常它们位于原型上）。
   const hadOwnStartSession = Object.prototype.hasOwnProperty.call(service, 'startSession')
   const originalStartSession = service.startSession
   const hadOwnOpenWorkspace = Object.prototype.hasOwnProperty.call(service, 'openWorkspace')
@@ -60,10 +59,10 @@ export function installNavigation(ctx: ClientContext): NavigationHandle | undefi
   const wrapsOpenWorkspace = typeof originalOpenWorkspace === 'function'
 
   const lifetime = new AbortController()
-  /** preset key -> in-flight creation, so a repeated click shares one request. */
+  /** 预设键 -> 进行中的创建，使重复点击共享同一个请求。 */
   const inFlight = new Map<string, Promise<CreatedSession>>()
   let disposed = false
-  /** Monotonic marker so a later navigation supersedes an in-flight creation. */
+  /** 单调标记，使较晚的导航取代进行中的创建。 */
   let startEpoch = 0
 
   const requestSession = (agentPreset: string | undefined): Promise<CreatedSession> => {
@@ -78,9 +77,8 @@ export function installNavigation(ctx: ClientContext): NavigationHandle | undefi
   }
 
   /**
-   * Surface a failure through the notice channel the native flow uses
-   * (`toast.createFailed`). Guarded: the channel is an implementation detail of
-   * ui-workspace, so an absent one only logs.
+   * 通过原生流程使用的通知通道（`toast.createFailed`）显露失败。
+   * 受保护：该通道是 ui-workspace 的实现细节，因此缺失时仅记录日志。
    */
   const reportFailure = (error: unknown): void => {
     const record = typeof error === 'object' && error !== null ? (error as Record<string, unknown>) : {}
@@ -90,21 +88,20 @@ export function installNavigation(ctx: ClientContext): NavigationHandle | undefi
       try {
         service.notify({ kind: 'createFailed', message: code === undefined ? message : `${code}: ${message}` })
       } catch {
-        // the notice channel is best-effort
+        // 通知通道是尽力而为的
       }
     }
     console.warn('no-workspace: new conversation failed:', error)
   }
 
   /**
-   * Move the caret into the composer of the Session that just became the main
-   * view. Best-effort: the conversation service is an implementation detail and
-   * may lag one frame behind, so the call is retried a few times.
+   * 将光标移入刚刚成为主视图的会话的编写器中。
+   * 尽力而为：对话服务是实现细节，可能滞后一帧，因此该调用会重试几次。
    */
   function focusComposer(attempts = 12): void {
     try {
-      // `input.focus` is the shell's public focus hook; guard the shape because
-      // the conversation service is an implementation detail that may lag.
+      // `input.focus` 是外壳的公共聚焦钩子；要防范其形状，
+      // 因为对话服务是一个可能滞后的实现细节。
       const input = conversationService(ctx)?.input as { focus?: () => void } | undefined
       if (typeof input?.focus === 'function') input.focus()
     } catch (error) {
@@ -119,7 +116,7 @@ export function installNavigation(ctx: ClientContext): NavigationHandle | undefi
     }
   }
 
-  /** Apply the same draft options the native implementation would. */
+  /** 应用原生实现会应用的相同草稿选项。 */
   const applyDraft = (sessionId: string, draftOptions: DraftOptions | undefined): void => {
     if (draftOptions === undefined) return
     try {
@@ -137,22 +134,22 @@ export function installNavigation(ctx: ClientContext): NavigationHandle | undefi
   }
 
   /**
-   * Create and open one standalone Session, honouring draft options and the
-   * start-up restore race. Shared by the native New Session entries and the
-   * "not in a workspace" picker action.
+   * 创建并打开一个独立会话，同时处理草稿选项和
+   * 启动恢复竞态。由原生“新建会话”条目和
+   * “不在工作区中”选择器操作共享。
    */
   function startStandalone(options: EntryOptions, migrate?: BeforeOpen): Promise<void> | undefined {
     const { agentPreset, ...draftOptions } = options ?? {}
     const initializeDraft = wantsDraftInitialization(options === undefined ? undefined : draftOptions)
     const epoch = ++startEpoch
 
-    // The native initial restore is allowed to lose against a user creation; a
-    // later navigation still wins. Record whether a restore had already claimed
-    // the stage when the user asked for the Session.
+    // 原生初始恢复可以输给用户的创建；较晚的导航仍然获胜。
+    // 记录当用户请求该会话时，是否已有恢复抢占了
+    // 舞台。
     const restorationAtStart = service.restorationNavigation
 
-    // Starting a navigation cancels the previous pending one, as the native
-    // flow does in openWorkspaceSession.
+    // 启动一个导航会取消先前待处理的导航，正如原生流程在
+    // openWorkspaceSession 中所做的。
     const layout: Layout | undefined = layoutService(ctx) ?? undefined
     const navigation = typeof layout?.beginNavigation === 'function' ? layout.beginNavigation() : lifetime.signal
 
@@ -161,15 +158,14 @@ export function installNavigation(ctx: ClientContext): NavigationHandle | undefi
         if (disposed || epoch !== startEpoch) return
         let activeNavigation = navigation
         if (activeNavigation.aborted) {
-          // The only start-up race this plugin tolerates: the native initial
-          // restoration calls beginNavigation() after the user already asked for
-          // a Session, aborting the user's signal. A restore that had not started
-          // when the user clicked must yield; a genuine later switch still wins.
+          // 此插件容忍的唯一启动竞态：原生初始恢复在用户已请求会话之后
+          // 调用 beginNavigation()，中止用户的信号。用户在点击时尚未开始的
+          // 恢复必须让路；真正的后续切换仍然获胜。
           const restoration = service.restorationNavigation
           const initialRestoreTookOver = restorationAtStart === undefined && restoration !== undefined && !restoration.aborted
           if (!initialRestoreTookOver) return
-          // Abort that restore's navigation and open the user's Session with the
-          // fresh navigation signal.
+          // 中止那个恢复的导航，并用全新的导航信号打开用户的
+          // 会话。
           activeNavigation = layout!.beginNavigation()
         }
         const beforeOpen: BeforeOpen | undefined =
@@ -185,17 +181,17 @@ export function installNavigation(ctx: ClientContext): NavigationHandle | undefi
                 if (initializeDraft) applyDraft(id, draftOptions)
               }
             : undefined
-        // `replaceMain` is the native primitive behind openWorkspaceSession: it
-        // retains the Session, applies the draft before publishing the selection,
-        // and yields to a later navigation via the signal.
+        // `replaceMain` 是 openWorkspaceSession 背后的原生原语：它保留
+        // 该会话，在发布选择之前应用草稿，并通过信号让位于
+        // 较晚的导航。
         if (typeof service.replaceMain === 'function') {
           service.replaceMain(sessionId, activeNavigation, 'reveal', beforeOpen)
         } else {
           beforeOpen?.(sessionId)
           service.openSession(sessionId)
         }
-        // `replaceMain` publishes the selection without moving focus, so a chat
-        // started from a menu would leave the caret outside the composer.
+        // `replaceMain` 发布选择而不移动焦点，因此从菜单启动的聊天
+        // 会把光标留在编写器之外。
         if (!initializeDraft) focusComposer()
       })
       .catch((error: unknown) => {
@@ -205,22 +201,22 @@ export function installNavigation(ctx: ClientContext): NavigationHandle | undefi
   }
 
   /**
-   * Replacement for `uiWorkspace.startSession`.
-   * @param workspaceId - an explicit Workspace keeps the native flow.
-   * @param options - draft initialization options and `agentPreset`.
+   * `uiWorkspace.startSession` 的替代实现。
+   * @param workspaceId - 显式的工作区保留原生流程。
+   * @param options - 草稿初始化选项和 `agentPreset`。
    */
   function startSession(this: unknown, workspaceId?: string, options?: EntryOptions): unknown {
     if (workspaceId !== undefined) {
-      // Any startSession call (explicit Workspace or standalone) supersedes a
-      // still-pending creation from an earlier click.
+      // 任何 startSession 调用（显式工作区或独立）都会取代
+      // 先前点击遗留的仍待处理的创建。
       startEpoch += 1
       return originalStartSession.apply(this ?? service, [workspaceId, options])
     }
 
-    // Already a brand-new conversation: pressing New Session again must not
-    // create another directory. The standalone blank Session is kept as is, and
-    // for a Workspace blank Session the native flow reuses that Session.
-    // A creation still in flight is allowed to finish and open instead.
+    // 已经是一个全新的对话：再次按“新建会话”不得
+    // 创建另一个目录。独立空白会话保持原样，
+    // 对于工作区中的空白会话，原生流程复用该会话。
+    // 仍在进行中的创建则允许完成并打开。
     if (!wantsDraftInitialization(options) && inFlight.size === 0) {
       const existing = currentNewConversation(ctx)
       if (existing === 'standalone') return undefined
@@ -234,17 +230,17 @@ export function installNavigation(ctx: ClientContext): NavigationHandle | undefi
   }
 
   /**
-   * Replacement for `uiWorkspace.openWorkspace`. A real Workspace id keeps the
-   * native flow; the synthetic "not in a workspace" row starts a standalone
-   * conversation instead. The Hero picker awaits the returned Promise, so both
-   * branches return one.
+   * `uiWorkspace.openWorkspace` 的替代实现。真实的工作区 id 保留
+   * 原生流程；合成的“不在工作区中”行则改为启动一个独立
+   * 对话。Hero 选择器会等待返回的 Promise，因此两个
+   * 分支都返回一个。
    */
   function openWorkspace(this: unknown, workspaceId: string, beforeOpen?: BeforeOpen, options?: EntryOptions): Promise<void> | undefined {
     if (workspaceId !== NO_WORKSPACE_OPTION_ID) {
       startEpoch += 1
       return originalOpenWorkspace?.apply(this ?? service, [workspaceId, beforeOpen, options]) as Promise<void> | undefined
     }
-    // Choosing "not in a workspace" while already in one is a no-op.
+    // 在已处于工作区时选择“不在工作区中”是无操作。
     if (inFlight.size === 0 && currentNewConversation(ctx) === 'standalone') return Promise.resolve()
     return startStandalone(undefined, beforeOpen)
   }

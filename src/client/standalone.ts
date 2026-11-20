@@ -2,13 +2,13 @@ import type { ClientContext } from './types.js'
 import { rememberCreated } from './identity.js'
 import { connection } from './services.js'
 
-/** What the Host reports back for one created conversation. */
+/** Host 为一个已创建对话回报的内容。 */
 export interface CreatedSession {
   sessionId: string
   cwd: string | undefined
 }
 
-/** Failure envelope of the gateway RPC. */
+/** 网关 RPC 的失败信封。 */
 interface RemoteFailure {
   ok: false
   error?: { code?: string; message?: string }
@@ -19,13 +19,13 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 }
 
 /**
- * Create one ungrouped Session through the plugin's single Host endpoint.
+ * 通过插件的单个 Host 端点创建一个未分组的会话。
  *
- * The gateway requires the single outer `args` key and a required SRC
- * parameter, so the `request` object is always present.
- * @param ctx - client plugin context.
- * @param agentPreset - optional per-Session agent preset.
- * @param signal - plugin lifetime cancellation.
+ * 网关要求单个外层 `args` 键以及一个必需的 SRC
+ * 参数，因此 `request` 对象始终存在。
+ * @param ctx - 客户端插件上下文。
+ * @param agentPreset - 可选的按会话 agent 预设。
+ * @param signal - 插件生命周期取消信号。
  */
 export async function createUngroupedSession(
   ctx: ClientContext,

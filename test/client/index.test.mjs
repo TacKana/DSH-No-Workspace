@@ -1,11 +1,11 @@
 /**
- * Self-test for client/index.js. Runs under plain Node (no Harness needed):
- *   node client/index.test.mjs
+ * 客户端入口（构建产物 dist/client/index.js）的自检。可在普通 Node 下运行（无需 Harness）：
+ *   node test/client/index.test.mjs
  *
- * It loads the real module through a fake `window.__ModuleLoader__` and drives
- * the wrapped `uiWorkspace.startSession` plus the session-scope Workspace view
- * with fake services, asserting the single-RPC contract and interception
- * semantics.
+ * 它通过伪造的 `window.__ModuleLoader__` 加载真实模块，
+ * 并用伪造的服务驱动包装后的 `uiWorkspace.startSession`
+ * 以及会话作用域的 Workspace 视图，断言单次 RPC 调用
+ * 约定与拦截语义。
  */
 import assert from 'node:assert/strict'
 
@@ -25,7 +25,7 @@ const calls = []
 const drafts = []
 let nextId = 0
 
-/** Tiny observable store used by the fake controller services. */
+/** 伪造的控制器服务所用的极简可观察存储。 */
 function observable(initial) {
   let value = initial
   const listeners = new Set()
@@ -70,7 +70,7 @@ function makeHarness({ rpc, items = [], sessions = [], current = undefined, with
     beginNavigation() {
       const controller = new AbortController()
       layoutSignals.push(controller)
-      // mimic the real service: a new navigation aborts the previous one
+      // 模拟真实服务：新的导航会中止上一个导航
       if (layoutSignals.length > 1) layoutSignals[layoutSignals.length - 2].abort()
       return controller.signal
     },
@@ -106,8 +106,8 @@ function makeHarness({ rpc, items = [], sessions = [], current = undefined, with
     },
   }
 
-  // Stand-in for the Client locale runtime: dictionaries per namespace and the
-  // active locale's revision, exactly what the plugin reads.
+  // Client 本地化运行时的替身：按命名空间存放的词典，以及
+  // 当前语言环境的修订号，正是插件所读取的内容。
   const dictionaries = new Map()
   let localeRevision = 1
   const localeListeners = new Set()
@@ -215,7 +215,7 @@ function makeHarness({ rpc, items = [], sessions = [], current = undefined, with
 
 const tick = () => new Promise((resolve) => setTimeout(resolve, 0))
 
-// 1. Explicit Workspace is delegated untouched.
+// 1. 显式指定 Workspace 时原样委托，不作改动。
 {
   calls.length = 0
   const h = makeHarness()
@@ -228,7 +228,7 @@ const tick = () => new Promise((resolve) => setTimeout(resolve, 0))
   assert.equal(Object.prototype.hasOwnProperty.call(h.service, 'startSession'), false)
 }
 
-// 2. No explicit Workspace calls the one RPC and opens the created Session.
+// 2. 未显式指定 Workspace 时调用唯一的 RPC，并打开新建的 Session。
 {
   calls.length = 0
   nextId = 0
@@ -246,13 +246,13 @@ const tick = () => new Promise((resolve) => setTimeout(resolve, 0))
   assert.equal(replace.beforeOpen, undefined)
   assert.ok(replace.signal instanceof AbortSignal)
 
-  // 3. Disposal restores the original prototype method.
+  // 3. 销毁后恢复原有的原型方法。
   h.dispose()
   assert.equal(h.service.startSession, h.nativeStartSession)
   assert.equal(Object.prototype.hasOwnProperty.call(h.service, 'startSession'), false)
 }
 
-// 4. Preset is forwarded and draft options run before publication.
+// 4. Preset 会被转发，草稿选项在发布之前运行。
 {
   calls.length = 0
   drafts.length = 0
@@ -264,14 +264,14 @@ const tick = () => new Promise((resolve) => setTimeout(resolve, 0))
   const replace = h.workspaceCalls.find((c) => c.kind === 'replace')
   assert.ok(replace)
   assert.equal(typeof replace.beforeOpen, 'function')
-  // replaceMain would call beforeOpen after retaining; the harness invokes it.
+  // 真实的 replaceMain 会在保留之后调用 beforeOpen；此处由测试夹具手动调用。
   replace.beforeOpen(replace.sessionId)
   assert.equal(drafts.length, 1)
   assert.deepEqual(drafts[0].binding, { sessionId: 's1' })
   assert.deepEqual(drafts[0].options, { prompt: 'draft text' })
 }
 
-// 5. Rapid identical requests share one RPC; only the latest navigation opens.
+// 5. 快速重复的相同请求共用一次 RPC；只有最新的一次导航会打开。
 {
   calls.length = 0
   nextId = 0
@@ -285,7 +285,7 @@ const tick = () => new Promise((resolve) => setTimeout(resolve, 0))
   assert.equal(replaces[0].sessionId, 's1')
 }
 
-// 6. Host failure is contained (logged, not thrown through the caller).
+// 6. Host 失败被就地处理（记录日志，不向调用方抛出）。
 {
   calls.length = 0
   const h = makeHarness({
@@ -303,11 +303,11 @@ const tick = () => new Promise((resolve) => setTimeout(resolve, 0))
     'failure is shown through the Workspace notice channel')
 }
 
-// 7. A standalone Session gets a local Workspace row; real data stays intact.
+// 7. 独立 Session 会获得一个本地 Workspace 行；真实数据保持完好。
 {
   const real = [workspaceView('w1', 'Project', 'C:\\proj', ['n1'])]
   const h = makeHarness({ items: real, sessions: [['u1', 'C:\\tmp\\dsh-chat-u1']] })
-  // Outside a conversation (the cold Hero) the root provider stays untouched.
+  // 在会话之外（冷启动 Hero），根 provider 保持原样。
   assert.equal(h.descriptors.length, 0, 'no contribution before a conversation is selected')
   h.setCurrent({ key: 'u1' })
   assert.equal(h.descriptors.length, 1, 'one session-scope provider for the conversation view')
@@ -326,21 +326,21 @@ const tick = () => new Promise((resolve) => setTimeout(resolve, 0))
   assert.equal(h.workspaceSnapshot.items.length, 1, 'the real Workspace list is never mutated')
   assert.equal(source.getSnapshot(), snapshot, 'snapshot identity is stable while inputs are unchanged')
 
-  // A Workspace conversation reads the untouched root list: the menu action is
-  // mirrored into the menu's own DOM, never into the Workspace snapshot.
+  // Workspace 会话读取的是未改动的根列表：菜单操作被镜像到菜单自身的 DOM，
+  // 而绝不会进入 Workspace 快照。
   h.setCurrent({ key: 'n1' })
   const other = h.descriptors[0].descriptor.resolve({ sessionId: 'n1' }).hooks.workspaces
   assert.equal(other.getSnapshot(), h.workspaceSnapshot,
     'a Workspace conversation sees the real list with no extra row')
   assert.equal(h.workspaceSnapshot.items.length, 1, 'the real Workspace list is still untouched')
 
-  // Outside a conversation the root source is handed out untouched again.
+  // 在会话之外，再次原样交出根数据源。
   h.setCurrent(undefined)
   assert.equal(h.descriptors.length, 0, 'no contribution outside a conversation')
   assert.equal(h.workspacesList.getSnapshot(), h.workspaceSnapshot,
     'the root list stays untouched while no conversation is selected')
 
-  // A view with no Session (the cold Hero) still resolves without throwing.
+  // 没有 Session 的视图（冷启动 Hero）仍能解析而不抛错。
   assert.equal(descriptor.resolve(undefined).hooks.workspaces.getSnapshot(), h.workspaceSnapshot,
     'the resolver tolerates an absent Session binding')
 
@@ -348,7 +348,7 @@ const tick = () => new Promise((resolve) => setTimeout(resolve, 0))
   assert.equal(h.descriptors.length, 0, 'disposal removes the provider')
 }
 
-// 8. Refresh recovery: decision comes from SessionId + cwd alone.
+// 8. 刷新恢复：仅凭 SessionId + cwd 做出判断。
 {
   const h = makeHarness({ sessions: [['u2', 'D:\\work\\dsh-chat-u2']] })
   h.setCurrent({ key: 'u2' })
@@ -358,7 +358,7 @@ const tick = () => new Promise((resolve) => setTimeout(resolve, 0))
   h.dispose()
 }
 
-// 9. With no Workspace to leave, a normal Session is offered no extra row.
+// 9. 没有可离开的 Workspace 时，普通 Session 不会多出额外的行。
 {
   const h = makeHarness({ sessions: [['n1', 'C:\\proj\\sub']] })
   h.setCurrent({ key: 'n1' })
@@ -367,7 +367,7 @@ const tick = () => new Promise((resolve) => setTimeout(resolve, 0))
   h.dispose()
 }
 
-// 10. The owning row appears once the Session summary carries its cwd.
+// 10. 一旦 Session 摘要带有其 cwd，所属行就会出现。
 {
   const h = makeHarness()
   h.setCurrent({ key: 'u3' })
@@ -380,8 +380,8 @@ const tick = () => new Promise((resolve) => setTimeout(resolve, 0))
   h.dispose()
 }
 
-// 11. The cwd returned by the RPC recognises the Session immediately, before the
-//     Session summary is updated (or when the summary never carries `cwd`).
+// 11. RPC 返回的 cwd 会立即识别出该 Session，早于 Session 摘要更新
+//     （或在摘要始终不携带 `cwd` 的情况下）。
 {
   calls.length = 0
   nextId = 0
@@ -397,8 +397,8 @@ const tick = () => new Promise((resolve) => setTimeout(resolve, 0))
   h.dispose()
 }
 
-// 12. Only the exact `dsh-chat-${sessionId}` leaf marks a standalone Session;
-//     a merely prefixed directory from another source is left alone.
+// 12. 只有精确的 `dsh-chat-${sessionId}` 叶子目录才标记为独立 Session；
+//     仅带有前缀、来自其他来源的目录不予处理。
 {
   const h = makeHarness({ sessions: [['x1', '/tmp/dsh-chat-unrelated']] })
   h.setCurrent({ key: 'x1' })
@@ -411,16 +411,16 @@ const tick = () => new Promise((resolve) => setTimeout(resolve, 0))
   h.dispose()
 }
 
-// 13. Start-up race: the native initial restore begins after the click and
-//     aborts the click's navigation. The user's creation must still win and
-//     abort the not-yet-finished restore.
+// 13. 启动竞态：原生初始恢复在点击之后开始，
+//     并中止点击的导航。用户的创建仍必须获胜，
+//     并中止尚未完成的恢复。
 {
   calls.length = 0
   let release
   const h = makeHarness({ rpc: () => new Promise((resolve) => { release = resolve }) })
   h.service.startSession()
   const userSignal = h.layoutSignals[0].signal
-  // The list becomes ready and the native restore calls beginNavigation().
+  // 列表就绪后，原生恢复会调用 beginNavigation()。
   const restoreSignal = h.layout.beginNavigation()
   h.service.restorationNavigation = restoreSignal
   assert.equal(userSignal.aborted, true, 'the restore aborts the click navigation')
@@ -436,7 +436,7 @@ const tick = () => new Promise((resolve) => setTimeout(resolve, 0))
   h.dispose()
 }
 
-// 14. A later explicit Workspace selection cancels the pending creation.
+// 14. 之后显式选择 Workspace 会取消挂起的创建。
 {
   calls.length = 0
   let release
@@ -453,7 +453,7 @@ const tick = () => new Promise((resolve) => setTimeout(resolve, 0))
   h.dispose()
 }
 
-// 15. Any later navigation (not another startSession) also cancels the creation.
+// 15. 任何后续导航（而非另一次 startSession）也会取消该创建。
 {
   calls.length = 0
   let release
@@ -467,8 +467,8 @@ const tick = () => new Promise((resolve) => setTimeout(resolve, 0))
   h.dispose()
 }
 
-// 16. Pressing New Session while already in this plugin's blank conversation
-//     must not allocate another directory or navigate.
+// 16. 已处于本插件的空白会话中时，再次点击“新建会话”
+//     不得分配另一个目录或进行导航。
 {
   calls.length = 0
   const h = makeHarness()
@@ -481,8 +481,8 @@ const tick = () => new Promise((resolve) => setTimeout(resolve, 0))
   h.dispose()
 }
 
-// 17. The same click inside a Workspace's blank conversation is delegated to the
-//     native flow, which reuses that Session instead of creating a directory.
+// 17. 在 Workspace 的空白会话中执行同样的点击，会委托给原生流程，
+//     由原生流程复用该 Session，而不是新建目录。
 {
   calls.length = 0
   const h = makeHarness({ items: [workspaceView('w1', 'Project', 'C:\\proj', ['n20'])] })
@@ -496,8 +496,8 @@ const tick = () => new Promise((resolve) => setTimeout(resolve, 0))
   h.dispose()
 }
 
-// 18. Once the standalone conversation has started a turn, a New Session click
-//     creates a fresh directory again.
+// 18. 独立会话一旦已经开始一轮对话，点击“新建会话”
+//     就会再次创建一个全新目录。
 {
   calls.length = 0
   nextId = 0
@@ -511,8 +511,8 @@ const tick = () => new Promise((resolve) => setTimeout(resolve, 0))
   h.dispose()
 }
 
-// 19. Options that initialize a draft still create a Session even in a blank
-//     conversation, because the caller asked for content to be placed.
+// 19. 用于初始化草稿的选项即使在空白会话中也会创建 Session，
+//     因为调用方要求放置内容。
 {
   calls.length = 0
   nextId = 0
@@ -525,8 +525,8 @@ const tick = () => new Promise((resolve) => setTimeout(resolve, 0))
   h.dispose()
 }
 
-// 20. Without the Client locale service the label falls back to the Chinese
-//     phrase rather than exposing the folder name.
+// 20. 没有 Client 本地化服务时，标签会回退为中文短语，
+//     而不是暴露文件夹名。
 {
   const h = makeHarness({ sessions: [['u23', '/tmp/dsh-chat-u23']], withLocale: false })
   h.setCurrent({ key: 'u23' })
@@ -536,7 +536,7 @@ const tick = () => new Promise((resolve) => setTimeout(resolve, 0))
   h.dispose()
 }
 
-// 21. A real Workspace id keeps the native `openWorkspace` flow untouched.
+// 21. 真实的 Workspace id 会保持原生 `openWorkspace` 流程不变。
 {
   calls.length = 0
   const h = makeHarness({ items: [workspaceView('w1', 'Project', 'C:\\proj', ['n1'])] })
@@ -551,7 +551,7 @@ const tick = () => new Promise((resolve) => setTimeout(resolve, 0))
   assert.equal(Object.prototype.hasOwnProperty.call(h.service, 'openWorkspace'), false)
 }
 
-// 22. The "not in a workspace" row starts a standalone conversation.
+// 22. “不在工作区中”这一行会启动一个独立会话。
 {
   calls.length = 0
   nextId = 0
@@ -568,7 +568,7 @@ const tick = () => new Promise((resolve) => setTimeout(resolve, 0))
   h.dispose()
 }
 
-// 23. Choosing "not in a workspace" while already in one is a no-op.
+// 23. 已处于某个工作区时再选择“不在工作区中”属于空操作。
 {
   calls.length = 0
   const h = makeHarness({ items: [workspaceView('w1', 'Project', 'C:\\proj', ['n1'])] })
@@ -580,7 +580,7 @@ const tick = () => new Promise((resolve) => setTimeout(resolve, 0))
   h.dispose()
 }
 
-// 24. The native draft migration reaches the new standalone Session.
+// 24. 原生草稿迁移会到达新的独立 Session。
 {
   calls.length = 0
   nextId = 0

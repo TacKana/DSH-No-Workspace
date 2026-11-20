@@ -3,20 +3,20 @@ import { isPending, pendingCwd } from './identity.js'
 import { isStandaloneSession } from './identity.js'
 import { sessions as sessionsService, uiSession as uiSessionService, workspaces as workspacesService } from './services.js'
 
-/** Session identity held by a view binding (newer builds use `key`). */
+/** 视图绑定所持有的会话身份标识（较新的构建使用 `key`）。 */
 export function identityOf(binding: SessionBinding | undefined): string | undefined {
   if (binding === undefined) return undefined
   const identity = binding.key ?? binding.sessionId
   return typeof identity === 'string' && identity.length > 0 ? identity : undefined
 }
 
-/** The list row the client already published for one Session. */
+/** 客户端已为一个会话发布的列表行。 */
 export function summaryOf(controller: Sessions | undefined, sessionId: string | undefined): SessionSummary | undefined {
   if (controller === undefined || sessionId === undefined || sessionId.length === 0) return undefined
   return controller.list.getSnapshot().byId?.[sessionId]
 }
 
-/** Working directory of a Session, including the just-created hand-off. */
+/** 会话的工作目录，包括刚创建的交接信息。 */
 export function cwdOf(controller: Sessions | undefined, sessionId: string | undefined): string | undefined {
   const pending = pendingCwd(sessionId)
   if (pending !== undefined) return pending
@@ -24,16 +24,16 @@ export function cwdOf(controller: Sessions | undefined, sessionId: string | unde
 }
 
 /**
- * What the main view currently shows, for the "New Session" reuse rules.
- * - `standalone`: this plugin's blank conversation — pressing New Session again
- *   must not allocate another directory.
- * - `workspace`: a blank conversation already owned by a Workspace — the native
- *   flow reuses that Session instead of creating one.
- * - `active`: the conversation already has content, so a new one is expected.
+ * 主视图当前显示的内容，用于“新建会话”的复用规则。
+ * - `standalone`：此插件的空白对话——再次按“新建会话”
+ *   不得再分配另一个目录。
+ * - `workspace`：已被某个工作区拥有的空白对话——原生流程
+ *   复用该会话，而不是新建一个。
+ * - `active`：对话已有内容，因此预期会创建一个新对话。
  */
 export type NewConversation = 'standalone' | 'workspace' | 'active'
 
-/** Classify the current main conversation. `undefined` when it cannot be told. */
+/** 对当前主对话进行分类。无法判断时返回 `undefined`。 */
 export function currentNewConversation(ctx: ClientContext): NewConversation | undefined {
   const binding = uiSessionService(ctx)?.adapter.current.getSnapshot()
   const sessionId = identityOf(binding)

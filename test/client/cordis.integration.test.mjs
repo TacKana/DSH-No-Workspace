@@ -1,6 +1,6 @@
 /**
- * Integration check against the real Cordis runtime shipped with DeepSeek Harness.
- * Skipped when DSH_INSTALL_DIR is not present (e.g. CI outside a DSH install).
+ * 针对 DeepSeek Harness 随附的真实 Cordis 运行时进行的集成检查。
+ * 当 DSH_INSTALL_DIR 不存在时跳过（例如在 DSH 安装环境之外的 CI）。
  */
 import path from 'node:path'
 import process from 'node:process'
@@ -12,8 +12,8 @@ if (!installDir) {
   process.exit(0)
 }
 
-// The Cordis runtime lives inside app.asar, which only the Electron-bundled Node
-// can read. Run this file with ELECTRON_RUN_AS_NODE=1 and that executable.
+// Cordis 运行时位于 app.asar 内部，只有 Electron 自带的 Node 才能读取。
+// 请使用 ELECTRON_RUN_AS_NODE=1 配合该可执行文件运行本文件。
 const packages = path.join(installDir, '..')
 let Context
 let Service
@@ -129,9 +129,9 @@ ctx.uiWorkspace.startSession(undefined, { agentPreset: 'precise' })
 await new Promise(resolve => setTimeout(resolve, 0))
 assert(JSON.stringify(calls[1].payload) === JSON.stringify({ args: { request: { agentPreset: 'precise' } } }), 'preset forwarded')
 
-// The standalone-Session provider follows the real Cordis scope binding, and it
-// is only registered while a conversation is selected (the cold Hero keeps the
-// root provider).
+// 独立 Session 的 provider 遵循真实 Cordis 的作用域绑定，
+// 且仅在选中某个会话时才注册（冷启动 Hero
+// 保留根 provider）。
 assert(descriptors.length === 0, 'no contribution before a conversation is selected')
 sessionsList.set({ byId: { 'u-real': { id: 'u-real', sessionId: 'u-real', cwd: 'C:\\tmp\\dsh-chat-u-real' } } })
 currentSource.set({ key: 'u-real' })
@@ -143,7 +143,7 @@ assert(workspaceSnapshot.items.length === 0, 'root Workspace data untouched')
 currentSource.set(undefined)
 assert(descriptors.length === 0, 'the contribution is withdrawn outside a conversation')
 
-// The picker row: a real Workspace id delegates, the sentinel creates.
+// 选择器中的行：真实 Workspace id 走委托，哨兵值则负责创建。
 await ctx.uiWorkspace.openWorkspace('ws-real', undefined, { from: 'picker' })
 const delegated = workspace.nativeCalls.at(-1)
 assert(delegated.kind === 'openWorkspace' && delegated.workspaceId === 'ws-real', 'real Workspace delegated to native openWorkspace')

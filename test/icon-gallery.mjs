@@ -1,5 +1,5 @@
-// Dump every icon the running DSH Web app can render, and render a labelled
-// contact sheet. Usage: node test/icon-gallery.mjs [out.png]
+// 导出运行中的 DSH Web 应用能渲染的每个图标，并渲染一张带标签的
+// 缩略图总览。用法：node test/icon-gallery.mjs [out.png]
 import { spawn } from 'node:child_process'
 import { once } from 'node:events'
 import { mkdir, mkdtemp, rm, writeFile } from 'node:fs/promises'
@@ -89,7 +89,7 @@ try {
   const ids = await run(`[...document.querySelectorAll('symbol[id^="dsw-icon-"]')].map(s => s.id)`)
   await run(`(() => {
     const ids = ${JSON.stringify(ids)}
-    // The sprite lives in the page; keep every <svg> that defines symbols.
+    // 雪碧图存在于页面中；保留每个定义了 symbol 的 <svg>。
     const defs = [...document.querySelectorAll('svg')]
       .filter(svg => svg.querySelector('symbol') !== null)
       .map(svg => svg.outerHTML)

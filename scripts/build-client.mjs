@@ -1,10 +1,10 @@
 /**
- * Bundle the Client entry into one browser artifact.
+ * 将 Client 入口打包成单个浏览器产物。
  *
- * DSH loads a Client plugin as a lazy factory registered on the shell's
- * `window.__ModuleLoader__`, so the package ships one plain ES module rather than
- * a module graph. esbuild keeps that contract trivial: no externals, no runtime
- * imports, one file.
+ * DSH 以惰性工厂的形式加载 Client 插件，并将其注册到外壳的
+ * `window.__ModuleLoader__` 上，因此本包发布的是一个普通 ES 模块，而非
+ * 一个模块图。esbuild 让这一约定保持简单：无外部依赖、无运行时
+ * 导入、仅一个文件。
  */
 import { build } from 'esbuild'
 import { mkdir } from 'node:fs/promises'

@@ -4,9 +4,9 @@
 var LOCALE_NAMESPACE = "no-workspace";
 var DICTIONARIES = {
   zh: {
-    /** Hero chip when the conversation has its own automatic directory. */
+    /** 当对话拥有其自己的自动目录时的 Hero 芯片。 */
     standalone: "\u4E0D\u5728\u5DE5\u4F5C\u533A\u4E2D\u5DE5\u4F5C",
-    /** Workspace-picker action that moves a conversation off every Workspace. */
+    /** 将对话从所有工作区移出的工作区选择器操作。 */
     option: "\u4E0D\u4F7F\u7528\u5DE5\u4F5C\u533A"
   },
   en: {

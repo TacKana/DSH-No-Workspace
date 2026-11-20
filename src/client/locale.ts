@@ -1,14 +1,14 @@
 import type { Locale, Unsubscribe } from './types.js'
 
-/** Locale namespace owned by this plugin; dictionaries live in `locale/*.json`. */
+/** 此插件拥有的 locale 命名空间；字典位于 `locale/*.json`。 */
 export const LOCALE_NAMESPACE = 'no-workspace'
 
-/** Labels this client entry adds. Keys are stable across languages. */
+/** 此客户端入口添加的标签。键在各语言间保持稳定。 */
 export const DICTIONARIES = {
   zh: {
-    /** Hero chip when the conversation has its own automatic directory. */
+    /** 当对话拥有其自己的自动目录时的 Hero 芯片。 */
     standalone: '不在工作区中工作',
-    /** Workspace-picker action that moves a conversation off every Workspace. */
+    /** 将对话从所有工作区移出的工作区选择器操作。 */
     option: '不使用工作区',
   },
   en: {
@@ -17,12 +17,12 @@ export const DICTIONARIES = {
   },
 } as const
 
-/** Chinese label used before (or without) the locale service. */
+/** 在 locale 服务之前（或没有它时）使用的中文标签。 */
 export const FALLBACK_LABEL = DICTIONARIES.zh.standalone
-/** Chinese menu action used before (or without) the locale service. */
+/** 在 locale 服务之前（或没有它时）使用的中文菜单操作。 */
 export const FALLBACK_OPTION = DICTIONARIES.zh.option
 
-/** Resolved, live-translated labels plus the revision that changes them. */
+/** 解析后的实时翻译标签，以及改变它们的修订版本号。 */
 export interface Text {
   label(): string
   option(): string
@@ -31,9 +31,9 @@ export interface Text {
 }
 
 /**
- * Register the dictionaries once per client lifetime.
- * Registration is guarded: a duplicate `(namespace, locale)` pair throws, and
- * an older client without a locale service simply keeps the fallback labels.
+ * 每个客户端生命周期只注册一次字典。
+ * 注册是受保护的：重复的 `(namespace, locale)` 对会抛出异常，
+ * 而缺少 locale 服务的较旧客户端只会保留回退标签。
  */
 export function registerDictionaries(localization: Locale | undefined): Unsubscribe {
   if (localization === undefined) return () => {}
@@ -45,13 +45,13 @@ export function registerDictionaries(localization: Locale | undefined): Unsubscr
   }
 }
 
-/** Build the label lookup used by the Hero chip and the picker action. */
+/** 构建 Hero 芯片和选择器操作所使用的标签查找。 */
 export function createText(localization: Locale | undefined): Text {
   const translate = localization === undefined ? undefined : localization.bind(LOCALE_NAMESPACE)
   const resolve = (key: keyof typeof DICTIONARIES.zh, fallback: string): string => {
     if (translate === undefined) return fallback
     const value = translate(key)
-    // A missing key comes back as the key itself; keep the dictionary value then.
+    // 缺失的键会以键本身的形式返回；此时保留字典值。
     return value !== undefined && value.length > 0 && value !== key ? value : fallback
   }
   return {

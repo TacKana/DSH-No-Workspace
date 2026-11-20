@@ -1,16 +1,15 @@
 /**
- * Ambient declarations for the two DSH packages the Host entry imports.
+ * 为 Host 入口所导入的两个 DSH 包提供环境声明。
  *
- * Both ship real `.d.ts` files, but they live inside the installed
- * application archive (`resources/app.asar/dsh/node_modules/...`), which is
- * neither a directory TypeScript can walk nor a path npm can install. These
- * declarations cover exactly the surface this plugin uses; the runtime import
- * is unchanged, so a shape change in DSH surfaces as a runtime warning rather
- * than a silently wrong type.
+ * 两者都随附真正的 `.d.ts` 文件，但它们位于已安装的
+ * 应用归档（`resources/app.asar/dsh/node_modules/...`）之内，该路径
+ * 既不是 TypeScript 能遍历的目录，也不是 npm 能安装的路径。这些
+ * 声明恰好覆盖本插件所用的接口；运行时导入保持不变，因此 DSH 中
+ * 的形状变化会表现为运行时警告，而不是静默地变成错误类型。
  */
 
 declare module '@deepseek-ai/schemastery' {
-  /** Opaque schema handle; only identity and the inferred value type matter here. */
+  /** 不透明的 schema 句柄；此处只有标识和推断出的值类型有意义。 */
   export interface Schema<T> {
     readonly '~type'?: T
   }
@@ -36,24 +35,24 @@ declare module '@deepseek-ai/schemastery' {
 }
 
 declare module '@deepseek-ai/dsh-typert-protocol' {
-  /** Failure raised by a Remote method; the gateway forwards `code` verbatim. */
+  /** 由 Remote 方法抛出的失败；网关会原样转发 `code`。 */
   export class RemoteError extends Error {
     constructor(code: string, message: string, details?: Record<string, unknown>)
     readonly code: string
     readonly details: Record<string, unknown>
   }
 
-  /** Response envelope of one gateway call. */
+  /** 一次网关调用的响应信封。 */
   export type RemoteResult<T> =
     | { ok: true; value: T }
     | { ok: false; error: { code: string; message: string; details?: Record<string, unknown> } }
 
-  /** Gateway request for one typed Remote method. */
+  /** 针对一个带类型的 Remote 方法的网关请求。 */
   export interface TypertInvokeRequest {
     namespace: string
     method: string
     args: { request: Record<string, unknown> }
-    /** Peer of the original invocation, so DSH applies its own policy. */
+    /** 原始调用的 peer，以便 DSH 应用其自身的策略。 */
     peer: unknown
     signal: AbortSignal
   }
@@ -62,7 +61,7 @@ declare module '@deepseek-ai/dsh-typert-protocol' {
     invoke<T = unknown>(request: TypertInvokeRequest): Promise<T>
   }
 
-  /** Host context surface this plugin relies on. */
+  /** 本插件所依赖的 Host 上下文接口面。 */
   export interface HostContext {
     get(name: string): unknown
     readonly logger: { warn(message: string, ...args: unknown[]): void }
@@ -75,7 +74,7 @@ declare module '@deepseek-ai/dsh-typert-protocol' {
     protected readonly ctx: HostContext
   }
 
-  /** Decorator context shape accepted by the manual (build-free) application. */
+  /** 手动（免构建）应用装饰器时所接受的装饰器上下文形状。 */
   export interface RemoteDecoratorContext {
     kind: 'method'
     name: string
@@ -88,7 +87,7 @@ declare module '@deepseek-ai/dsh-typert-protocol' {
 }
 
 declare module '@deepseek-ai/dsh-app-boot' {
-  /** Launcher-owned profile facts (`ctx.profileContext`). */
+  /** 启动器拥有的 profile 信息（`ctx.profileContext`）。 */
   export interface ProfileContext {
     readonly name: string
     readonly dir: string

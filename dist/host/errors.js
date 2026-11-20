@@ -1,17 +1,17 @@
 import { RemoteError } from '@deepseek-ai/dsh-typert-protocol';
-/** Error codes the Host surfaces over the gateway; mirrored by the client. */
+/** Host 通过网关对外暴露的错误码；客户端与之对应。 */
 export const ERROR_ARGUMENTS_INVALID = 'no-workspace/arguments-invalid';
 export const ERROR_ROOT_INVALID = 'no-workspace/root-invalid';
 export const ERROR_MKDIR_FAILED = 'no-workspace/mkdir-failed';
-/** The request payload is not the single `{ request }` object the gateway sends. */
+/** 请求载荷不是网关所发送的那个单一 `{ request }` 对象。 */
 export function argumentsInvalid() {
     return new RemoteError(ERROR_ARGUMENTS_INVALID, '新建会话参数无效。', {});
 }
-/** No usable absolute root directory is configured. */
+/** 未配置可用的绝对根目录。 */
 export function rootInvalid() {
     return new RemoteError(ERROR_ROOT_INVALID, '请在插件配置中填写主机上的完整绝对路径。', {});
 }
-/** The configured root exists but the conversation directory could not be created. */
+/** 配置的根目录存在，但无法创建会话目录。 */
 export function mkdirFailed(root, cause) {
     const reason = cause instanceof Error ? cause.message : String(cause);
     return new RemoteError(ERROR_MKDIR_FAILED, `无法在 ${root} 创建会话目录。${reason}`, { root });

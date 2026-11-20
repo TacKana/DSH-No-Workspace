@@ -2,42 +2,41 @@ import type { Text } from './locale.js'
 import { NO_WORKSPACE_ICON } from './options.js'
 import type { Unsubscribe } from './types.js'
 
-/** Attribute that marks the injected row, so passes stay idempotent. */
+/** 标记注入行的属性，使各次处理保持幂等。 */
 const MARK = 'data-no-workspace-action'
 
-/** Native failure notice the conversation surface already understands. */
+/** 对话界面已经理解的原生失败通知。 */
 export type ConversationNotice = (error: unknown) => void
 
-/** Collaborators of the injected picker action. */
+/** 注入的选择器操作的协作者。 */
 export interface PickerActionOptions {
-  /** Localized menu label. */
+  /** 本地化的菜单标签。 */
   text: Pick<Text, 'option'>
-  /** Runs the sentinel open; may return a promise. */
+  /** 运行哨兵打开操作；可能返回一个 promise。 */
   chooseNotInWorkspace(): unknown
-  /** Resolves the native failure notice, when the surface offers one. */
+  /** 解析原生失败通知（当界面提供时）。 */
   conversationNotice(): ConversationNotice | undefined
 }
 
-/** Whether a menu row belongs to the Workspace picker (not a context menu). */
+/** 菜单行是否属于工作区选择器（而非上下文菜单）。 */
 function isWorkspacePicker(menu: Element, footer: Element): boolean {
   if (menu.closest('[data-context-menu]') !== null) return false
   if (menu.querySelector('svg[data-icon*="folder-close"]') === null) return false
   return [...footer.children].some((wrap) => wrap.querySelector('svg[data-icon*="plus-outline"]') !== null)
 }
 
-/** The footer wrapper that carries the add-folder action. */
+/** 携带添加文件夹操作的页脚包装元素。 */
 function addTemplate(footer: Element): Element | undefined {
   return [...footer.children].find((wrap) => wrap.querySelector('svg[data-icon*="plus-outline"]') !== null)
 }
 
 /**
- * Mirror a "not in a workspace" action into the open Workspace menu, inside the
- * footer group that holds "add folder".
+ * 将“不在工作区中”操作镜像到打开的 Workspace 菜单中，放在
+ * 包含“添加文件夹”的页脚组内。
  *
- * The native menu builds its footer from its own add entries and never reads the
- * Workspace snapshot for it, so the live add row is cloned, re-labelled and
- * inserted just before it. Nothing is added to any snapshot, so the sidebar,
- * counts and the command palette cannot see the action.
+ * 原生菜单根据其自身的添加入口构建页脚，从不为此读取工作区快照，
+ * 因此实时的添加行会被克隆、重新标记，并插入到它之前。不会向任何快照添加内容，
+ * 因此侧边栏、计数和命令面板都无法看到该操作。
  */
 export function installPickerFooterAction(options: PickerActionOptions): Unsubscribe {
   if (typeof document === 'undefined' || typeof MutationObserver !== 'function') return () => {}
@@ -45,12 +44,12 @@ export function installPickerFooterAction(options: PickerActionOptions): Unsubsc
   let observer: MutationObserver | null = null
   let applying = false
 
-  /** Adopt a cloned add row as the standalone action. */
+  /** 将一个克隆的添加行收编为独立操作。 */
   const adopt = (row: Element): void => {
     const button = row.querySelector('button[role="menuitem"]')
     if (button === null) return
-    // Keep the cloned icon slot but point it at the "leave a project" glyph:
-    // one plus (the add row) is enough, two read as "another new folder".
+    // 保留克隆的图标槽位，但将其指向“离开项目”字形：
+    // 一个加号（添加行）足够，两个会被理解成“又一个新文件夹”。
     for (const icon of row.querySelectorAll('[class*="itemIcon"] svg')) {
       icon.setAttribute('data-icon', NO_WORKSPACE_ICON)
       const use = icon.querySelector('use')
@@ -59,15 +58,15 @@ export function installPickerFooterAction(options: PickerActionOptions): Unsubsc
     button.addEventListener('click', (event) => {
       event.preventDefault()
       event.stopPropagation()
-      // The Menu listens for Escape on the document and closes once.
+      // 菜单监听 document 上的 Escape，并关闭一次。
       document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }))
       const report = (error: unknown): void => {
         console.warn('no-workspace: opening a standalone chat failed:', error)
         try {
-          // The menu is already closed, so report through the normal channel.
+          // 菜单已经关闭，因此通过正常通道报告。
           options.conversationNotice()?.(error)
         } catch {
-          // the notice channel is best-effort
+          // 通知通道是尽力而为的
         }
       }
       try {
@@ -80,12 +79,12 @@ export function installPickerFooterAction(options: PickerActionOptions): Unsubsc
     if (labelNode !== null) labelNode.textContent = options.text.option()
   }
 
-  /** Insert or refresh the row in every open Workspace menu (one pass per frame). */
+  /** 在每个打开的 Workspace 菜单中插入或刷新该行（每帧一次处理）。 */
   const apply = (): void => {
     if (applying) return
     applying = true
-    // Ignore the mutations this pass performs; otherwise re-inserting a row that
-    // React re-rendered away would trigger the observer forever.
+    // 忽略本次处理产生的变更；否则重新插入一个被
+    // React 重新渲染掉的行会永远触发观察器。
     observer?.disconnect()
     try {
       const label = options.text.option()
@@ -123,7 +122,7 @@ export function installPickerFooterAction(options: PickerActionOptions): Unsubsc
   }
 
   apply()
-  // Menus mount at the document body on open; only re-scan while one exists.
+  // 菜单在打开时挂载到文档 body；仅当存在菜单时才重新扫描。
   observer = new MutationObserver(() => {
     if (document.querySelector('[role="menu"]') !== null) apply()
   })

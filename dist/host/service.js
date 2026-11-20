@@ -3,13 +3,12 @@ import { Config } from './config.js';
 import { argumentsInvalid, mkdirFailed, rootInvalid } from './errors.js';
 import { allocate, createDirectory, discardDirectory, resolveRoot } from './paths.js';
 /**
- * Host half of the no-workspace plugin.
+ * no-workspace 插件的 Host 半边。
  *
- * It owns exactly one responsibility: reserve a private directory for a
- * conversation that was started without a Workspace, then create the Session
- * through the *native* `session/create` gateway method with that directory as
- * its `cwd` — never with a `workspaceId`, so the Workspace registry stays
- * untouched and the conversation keeps appearing under "未分组".
+ * 它只承担一项职责：为未经 Workspace 启动的会话预留一个私有目录，
+ * 然后通过*原生*的 `session/create` 网关方法创建 Session，
+ * 并把该目录作为其 `cwd` —— 绝不使用 `workspaceId`，
+ * 从而保持 Workspace 注册表不变，让该会话始终出现在 "未分组" 之下。
  */
 export default class NoWorkspaceService extends TypertRemoteService {
     static inject = ['typertGateway', 'sessionController'];
@@ -20,9 +19,9 @@ export default class NoWorkspaceService extends TypertRemoteService {
         this.configuredRoot = config.root ?? '';
     }
     /**
-     * Create one standalone conversation.
-     * @param request - untrusted gateway payload.
-     * @returns the new SessionId and the directory bound to it.
+     * 创建一个独立会话。
+     * @param request - 来自网关的不可信载荷。
+     * @returns 新的 SessionId 以及与其绑定的目录。
      */
     async create(request) {
         const parsed = parseRequest(request);
@@ -47,8 +46,8 @@ export default class NoWorkspaceService extends TypertRemoteService {
                         ? { sessionId: allocation.sessionId, cwd: allocation.cwd }
                         : { sessionId: allocation.sessionId, cwd: allocation.cwd, agentPreset: parsed.agentPreset },
                 },
-                // Delegating with the original peer keeps DSH's own `session/create`
-                // policy and access control in force.
+                // 使用原始 peer 委托调用，可保留 DSH 自身 `session/create`
+                // 的策略与访问控制。
                 peer,
                 signal,
             });
@@ -62,7 +61,7 @@ export default class NoWorkspaceService extends TypertRemoteService {
             throw error;
         }
     }
-    /** Launcher-provided profile directory, when this process runs under one. */
+    /** 由启动器提供的 profile 目录（当本进程运行在其下时）。 */
     profileDirectory() {
         const profile = this.ctx.get('profileContext');
         if (profile !== undefined && typeof profile.dir === 'string' && profile.dir.length > 0)
@@ -72,10 +71,10 @@ export default class NoWorkspaceService extends TypertRemoteService {
     }
 }
 /**
- * Validate the payload the gateway forwards.
- * The gateway already type-checks the outer `request` object, but a Remote
- * method is reachable from other peers as well, so the body is re-checked here
- * before it can create a directory.
+ * 校验网关转发过来的载荷。
+ * 网关已对外层 `request` 对象做过类型检查，但 Remote 方法
+ * 也可能被其它 peer 触达，因此这里在创建目录之前
+ * 再次检查请求体。
  */
 function parseRequest(raw) {
     if (raw === undefined || raw === null || typeof raw !== 'object' || Array.isArray(raw))

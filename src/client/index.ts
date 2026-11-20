@@ -11,13 +11,13 @@ import {
 } from './services.js'
 import { installWorkspacePickerView } from './workspace-view.js'
 
-/** Id the shell uses for this plugin; it must equal the package name. */
+/** 外壳用来标识此插件的 Id；它必须与包名一致。 */
 const PACKAGE_ID = '@local/dsh-no-workspace'
 
-/** Services that must be ready before {@link apply} runs. */
+/** 在 {@link apply} 运行之前必须就绪的服务。 */
 const inject = ['uiWorkspace', 'connection', 'sessions', 'uiSession', 'workspaces', 'locale'] as const
 
-/** Build the notice channel the picker action uses when creating fails. */
+/** 构建选择器操作在创建失败时使用的通知通道。 */
 function noticeChannel(ctx: ClientContext): ((error: unknown) => void) | undefined {
   const service = uiWorkspaceService(ctx)
   if (service === undefined || typeof service.notify !== 'function') return undefined
@@ -28,27 +28,27 @@ function noticeChannel(ctx: ClientContext): ((error: unknown) => void) | undefin
     try {
       service.notify?.({ kind: 'createFailed', message: code === undefined ? message : `${code}: ${message}` })
     } catch {
-      // the notice channel is best-effort
+      // 通知通道是尽力而为的
     }
   }
 }
 
-/** Wire the plugin into one Client context. */
+/** 将插件接入一个 Client 上下文。 */
 function apply(ctx: ClientContext): void {
   const navigation = installNavigation(ctx)
   if (navigation === undefined) return
 
-  // The Hero chip shows this label for the plugin's own blank Sessions, so the
-  // raw `dsh-chat-<uuid>` folder name never reaches the reader.
+  // Hero 芯片为插件自己的空白会话显示此标签，因此原始 `dsh-chat-<uuid>`
+  // 文件夹名永远不会呈现给读者。
   ctx.effect(
     () => registerDictionaries(localeService(ctx)),
     'no-workspace: locale dictionaries',
   )
   const text = createText(localeService(ctx))
 
-  // The Hero composer stays inert for an ungrouped Session because no Workspace
-  // lists it. Give those Sessions (and only those) a local Workspace row without
-  // touching the Host list or the real picker.
+  // 对于未分组的会话，Hero 编写器保持不活动，因为没有工作区列出它。
+  // 在不触及 Host 列表或真实选择器的情况下，为这些会话（且仅那些）提供一个
+  // 本地工作区行。
   const uiSession = uiSessionService(ctx)
   const workspaces = workspacesService(ctx)
   const sessions = sessionsService(ctx)
@@ -57,9 +57,8 @@ function apply(ctx: ClientContext): void {
       () => installWorkspacePickerView(uiSession, workspaces, sessions, text),
       'no-workspace: conversation workspace view',
     )
-    // The Hero picker's menu portals to the document body and builds its footer
-    // only from the native add action, so the extra action is mirrored into that
-    // open menu instead of the Workspace snapshot.
+    // Hero 选择器的菜单传送到文档 body，并且仅根据原生添加操作构建其页脚，
+    // 因此额外的操作被镜像到那个已打开的菜单中，而不是工作区快照。
     if (navigation.wrapsOpenWorkspace) {
       ctx.effect(
         () =>

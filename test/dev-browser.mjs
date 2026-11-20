@@ -5,7 +5,7 @@ import { mkdir, readdir } from 'node:fs/promises'
 import path from 'node:path'
 import { setTimeout as delay } from 'node:timers/promises'
 
-// Use Chromium's debugging pipe and an empty browser profile owned by the test.
+// 使用 Chromium 的调试管道，以及由测试独占的空浏览器配置目录。
 function chromium(tmp) {
   const executable = process.env.DSH_TEST_CHROME || 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe'
   const browser = spawn(executable, [
@@ -121,16 +121,16 @@ export async function verifyBrowser({ launch, tmp, dirs, rpc, until }) {
     await until(async () => (await summary(created))?.blank === false, 'first message accepted')
     console.log('Browser verified: global New Session, refresh, editable composer and first message submission.')
 
-    // The native shortcut also allocates its own directory once the previous
-    // conversation has started a turn.
+    // 一旦上一个会话已经开始一轮对话，原生快捷键
+    // 也会分配自己的目录。
     await press({ key: 'n', code: 'KeyN', modifiers: 3, windowsVirtualKeyCode: 78 })
     const keyboard = await changedSession(created, 'native New Session shortcut')
     assert.equal((await summary(keyboard)).cwd, path.join(dirs.chats, `dsh-chat-${keyboard}`))
     assert.equal(await directoryCount(), initialCount + 2)
     console.log('Browser verified: native New Session shortcut allocates its own directory.')
 
-    // From the blank automatic chat, pick an existing Workspace. The picker must
-    // never list an automatic directory.
+    // 从空白的自动会话中选择一个已存在的 Workspace。选择器
+    // 绝不能列出自动目录。
     const project = path.join(dirs.documents, 'Manual project')
     await mkdir(project)
     await rpc('workspace/create', { request: { path: project } })
@@ -147,10 +147,10 @@ export async function verifyBrowser({ launch, tmp, dirs, rpc, until }) {
     assert.equal(await directoryCount(), initialCount + 2)
     console.log('Browser verified: clean picker and selection of an existing project.')
 
-    // That conversation belongs to the Workspace, so the chip names the project.
+    // 该会话属于该 Workspace，因此标签显示的是项目名称。
     await until(async () => await run(`${chip}?.textContent.trim()`) === 'Manual project', 'workspace chip title')
 
-    // A New Session click in the blank Workspace conversation keeps it (native reuse).
+    // 在空白的 Workspace 会话中点击“新建会话”会保留它（原生复用）。
     const beforeRepeat = await directoryCount()
     await run(`(${newButton}).click()`)
     await delay(1200)
@@ -159,9 +159,9 @@ export async function verifyBrowser({ launch, tmp, dirs, rpc, until }) {
     assert.equal((await summary(selected)).cwd, project, 'the project directory is untouched')
     console.log('Browser verified: workspace conversation kept its cwd with zero extra automatic directories.')
 
-    // The menu's footer group carries 不使用工作区 immediately above 添加工作区.
-    // The action lives in the menu DOM, not in the Workspace snapshot, so no
-    // other surface (sidebar, counts, palette) can ever see it.
+    // 菜单的 footer 组中，“不使用工作区”紧挨在“添加工作区”上方。
+    // 该操作存在于菜单 DOM 中，而非 Workspace 快照中，因此任何
+    // 其他界面（侧边栏、计数、命令面板）都无法看到它。
     const sidebarText = `(document.querySelector('[data-slot="sidebar"]')?.innerText ?? '')`
     await click(chip, 'workspace selector (from a project)')
     const entry = `${choices}.find(e => e.textContent.trim() === '不使用工作区')`
@@ -175,7 +175,7 @@ export async function verifyBrowser({ launch, tmp, dirs, rpc, until }) {
       return {
         inFooter: true,
         addFound: add !== undefined,
-        // Document order inside the same footer group: the action precedes the add row.
+        // 同一 footer 组内的文档顺序：该操作排在“添加”行之前。
         beforeAdd: add !== undefined
           && (entry.compareDocumentPosition(add) & Node.DOCUMENT_POSITION_FOLLOWING) !== 0,
         hasCheck: entry.querySelector('[class*="check"]') !== null,
@@ -200,12 +200,12 @@ export async function verifyBrowser({ launch, tmp, dirs, rpc, until }) {
     assert.equal(await run(`${sidebarText}.includes('不使用工作区')`), false, 'the sidebar still shows no action row')
     console.log('Browser verified: 不使用工作区 sits beside 添加工作区 and leaves the Workspace.')
 
-    // The caret lands in the composer, so the user can type without clicking.
+    // 光标落在输入框中，用户无需点击即可直接输入。
     await until(() => run(`Boolean(document.activeElement && document.activeElement.closest('[contenteditable="true"]'))`),
       'composer focused after leaving a Workspace', 8000)
     console.log('Browser verified: the new chat leaves the caret in the composer.')
 
-    // Other menus are never injected: the session actions menu has no such row.
+    // 其他菜单绝不会被注入：会话操作菜单中不存在这样的行。
     const actions = `${buttons}.find(b => /^会话.*的操作$/.test(b.getAttribute('aria-label')))`
     await click(actions, 'session actions menu')
     await until(() => run(`!!(document.querySelector('[role="menu"]'))`), 'session actions menu open')
