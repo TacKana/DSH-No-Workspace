@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "description": "Create a private working directory for each new DSH conversation.",
   "private": true,
+  "license": "PolyForm-Noncommercial-1.0.0",
   "type": "module",
   "exports": {
     ".": "./host/index.js",

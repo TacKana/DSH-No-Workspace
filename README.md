@@ -34,6 +34,12 @@ $bundle = (Resolve-Path '.\local-dsh-no-workspace-0.1.0.tgz').Path
 
 本插件必须用 `file:` 安装，不能用 `link:`：主机入口要 `import` DSH 自带的包，而 `link:` 会按真实路径加载、找不到 `node_modules`，接口会 404。升级本插件时若版本号未变，`add` 会说“Already up to date”而保留旧文件，应先 `remove '@local/dsh-no-workspace'` 再 `add`。
 
+## 许可协议
+
+本项目采用 [PolyForm Noncommercial License 1.0.0](LICENSE)（`PolyForm-Noncommercial-1.0.0`）。你可以免费用于个人学习、研究、实验、业余项目等任何**非商业**用途，也可以修改和再分发；**任何商业用途都需要事先取得版权持有人的书面许可**。
+
+需要注意：这一协议不是 OSI 定义的“开源”许可，而是“源码可见（source-available）”。协议正文以 [PolyForm Project 官方版本](https://polyformproject.org/licenses/noncommercial/1.0.0/) 为准。
+
 ## 测试
 
 在 DSH 提供的 Windows Shell 中，运行 `node client/index.test.mjs` 验证导航、目录识别和冷启动竞态。安装到开发 profile 后，`node test/dev-smoke.mjs` 用临时会话存储验证主机端，`--browser` 追加真实浏览器流程：点击全局「新建会话」、刷新后继续输入、发送首条消息、在已有工作区新建对话、使用快捷键，以及切换到项目。测试使用独立的 Chrome 用户目录，会通过开发 profile 的模型发送一条测试消息；可用 `DSH_TEST_CHROME` 指定 Chromium 可执行文件。`--default-root` 单独验证 `root` 留空时回退到 profile 内的 `session-workspaces`，并在结束后删除自己创建的目录，因此要求该目录此前不存在。
