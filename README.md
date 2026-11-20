@@ -66,5 +66,5 @@ $bundle = (Resolve-Path '.\local-dsh-no-workspace-0.1.0.tgz').Path
 
 ## 测试
 
-在 DSH 提供的 Windows Shell 中，先 `npm run build`，再运行 `npm test`（即 `node test/client/index.test.mjs` 与真实 Cordis 集成测试）验证导航、目录识别和冷启动竞态。安装到开发 profile 后，`npm run test:smoke` 用临时会话存储验证主机端，`npm run test:browser` 追加真实浏览器流程：点击全局「新建会话」、刷新后继续输入、发送首条消息、在已有工作区新建对话、使用快捷键、切换项目，以及选择器里的「不使用工作区」。测试使用独立的 Chrome 用户目录，会通过开发 profile 的模型发送一条测试消息；可用 `DSH_TEST_CHROME` 指定 Chromium 可执行文件。`node test/dev-smoke.mjs --default-root` 单独验证 `root` 留空时回退到 profile 内的 `session-workspaces`，并在结束后删除自己创建的目录，因此要求该目录此前不存在。
+在 DSH 提供的 Windows Shell 中，先 `npm run build`，再运行 `npm test`（`node test/client/index.test.mjs` 与真实 Cordis 集成测试）验证导航、目录识别和冷启动竞态。集成测试读取 app.asar 内的 Cordis，需用 `ELECTRON_RUN_AS_NODE=1` 和 DSH 自带的 Node 运行，否则会自动跳过。安装到开发 profile 后，`npm run test:smoke` 用临时会话存储验证主机端，`npm run test:browser` 追加真实浏览器流程：点击全局「新建会话」、刷新后继续输入、发送首条消息、在已有工作区新建对话、使用快捷键、切换项目，以及选择器里的「不使用工作区」。测试使用独立的 Chrome 用户目录，会通过开发 profile 的模型发送一条测试消息；可用 `DSH_TEST_CHROME` 指定 Chromium 可执行文件。`node test/dev-smoke.mjs --default-root` 单独验证 `root` 留空时回退到 profile 内的 `session-workspaces`，并在结束后删除自己创建的目录，因此要求该目录此前不存在。
 

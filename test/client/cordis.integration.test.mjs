@@ -8,12 +8,24 @@ import { pathToFileURL } from 'node:url'
 
 const installDir = process.env.DSH_INSTALL_DIR
 if (!installDir) {
-  console.log('client/cordis.integration.test.mjs: skipped (DSH_INSTALL_DIR unset)')
+  console.log('test/client/cordis.integration.test.mjs: skipped (DSH_INSTALL_DIR unset)')
   process.exit(0)
 }
 
+// The Cordis runtime lives inside app.asar, which only the Electron-bundled Node
+// can read. Run this file with ELECTRON_RUN_AS_NODE=1 and that executable.
 const packages = path.join(installDir, '..')
-const { Context, Service } = await import(pathToFileURL(path.join(packages, 'cordis', 'lib', 'index.js')).href)
+let Context
+let Service
+try {
+  ({ Context, Service } = await import(pathToFileURL(path.join(packages, 'cordis', 'lib', 'index.js')).href))
+} catch (error) {
+  console.log(
+    'test/client/cordis.integration.test.mjs: skipped (run with ELECTRON_RUN_AS_NODE=1 and the DSH Node executable):',
+    error instanceof Error ? error.message.split('\n')[0] : error,
+  )
+  process.exit(0)
+}
 
 let spec
 globalThis.window = { __ModuleLoader__: { load(value) { spec = value } } }
