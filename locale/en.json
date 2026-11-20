@@ -1,0 +1,6 @@
+{
+  "meta": {
+    "title": "Workspace-free chat",
+    "description": "Start a new chat to work in its own directory. Set the parent directory in plugin settings. These chats appear under Ungrouped. Open an existing workspace from the workspace list to work there."
+  }
+}

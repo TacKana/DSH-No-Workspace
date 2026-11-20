@@ -1,0 +1,3 @@
+- insert:
+    - id: no-workspace
+      name: '@local/dsh-no-workspace'
