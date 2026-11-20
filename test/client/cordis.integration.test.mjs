@@ -17,7 +17,7 @@ const { Context, Service } = await import(pathToFileURL(path.join(packages, 'cor
 
 let spec
 globalThis.window = { __ModuleLoader__: { load(value) { spec = value } } }
-await import(pathToFileURL(path.join(import.meta.dirname, 'index.js')).href)
+await import(pathToFileURL(path.join(import.meta.dirname, '..', '..', 'dist', 'client', 'index.js')).href)
 
 function assert(condition, message) {
   if (!condition) throw new Error(message)

@@ -16,7 +16,7 @@ globalThis.window = {
   },
 }
 
-await import('./index.js')
+await import('../../dist/client/index.js')
 
 assert.ok(loaded, 'the module declared itself to the module loader')
 assert.equal(loaded.id, '@local/dsh-no-workspace', 'module id equals the package name')
