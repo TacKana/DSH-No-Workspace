@@ -26,7 +26,7 @@ await build({
   legalComments: 'none',
   logLevel: 'warning',
   banner: {
-    js: '// @local/dsh-no-workspace — generated from src/client by scripts/build-client.mjs; do not edit.',
+    js: '// dsh-no-workspace — generated from src/client by scripts/build-client.mjs; do not edit.',
   },
 })
 console.log('Built dist/client/index.js')

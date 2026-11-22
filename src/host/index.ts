@@ -1,5 +1,5 @@
 /**
- * `@local/dsh-no-workspace` —— Host 入口。
+ * `dsh-no-workspace` —— Host 入口。
  *
  * 该插件是一个 bundle 行：`cordis.patch.yml` 插入 `no-workspace`，其
  * `Config` 为 `{ root }`。Host 的一切行为都位于 `service.ts` 中。

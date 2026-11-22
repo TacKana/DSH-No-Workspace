@@ -12,7 +12,7 @@ import {
 import { installWorkspacePickerView } from './workspace-view.js'
 
 /** 外壳用来标识此插件的 Id；它必须与包名一致。 */
-const PACKAGE_ID = '@local/dsh-no-workspace'
+const PACKAGE_ID = 'dsh-no-workspace'
 
 /** 在 {@link apply} 运行之前必须就绪的服务。 */
 const inject = ['uiWorkspace', 'connection', 'sessions', 'uiSession', 'workspaces', 'locale'] as const
