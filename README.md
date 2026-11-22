@@ -19,6 +19,14 @@
 - **Smart draft reuse & persistence**: Clicking **New Chat** again while still in an empty draft reuses the current session without creating duplicate directories; a new directory is only allocated after you send the first message. Files on disk are preserved when you archive a chat or disable the plugin.
 - **Switch out of a workspace anytime**: When a chat is currently inside a workspace, the workspace picker menu adds a **Use no workspace** option right above *Add Workspace*, switching the chat to a fresh isolated directory and focusing the input box.
 
+## Screenshots
+
+- **Workspace picker menu & "Use no workspace" option**
+  ![Workspace picker menu showing Use no workspace](./docs/images/demo-picker.png)
+
+- **Automatic isolated directory (`dsh-chat-<session-id>`) under Ungrouped**
+  ![Conversation using an isolated dsh-chat directory](./docs/images/demo-session-dir.png)
+
 ## Environment & Requirements
 
 | Item | Requirement / Details |
