@@ -12,7 +12,7 @@
 
 ## What It Does
 
-**DSH No-Workspace Chat** (`dsh-no-workspace`) removes the friction of having to create or pick a workspace before chatting in **DeepSeek Harness (DSH)**:
+**DSH No-Workspace Chat** (`@neoxuxo/dsh-no-workspace`) removes the friction of having to create or pick a workspace before chatting in **DeepSeek Harness (DSH)**:
 
 - **Instant isolated conversations**: Click the global **New Chat** button in the DSH sidebar (or use the native shortcut) and start typing right away. The plugin automatically creates a dedicated directory `dsh-chat-<session-id>` for the conversation.
 - **Keeps your workspace list clean**: Auto-created directories are saved as the conversation's native working directory and appear under **Ungrouped**, never cluttering your sidebar workspace list or workspace count. The top directory badge shows *Not working in a workspace* instead of exposing the internal folder name.
@@ -34,7 +34,7 @@
 1. Open **Plugins** in DSH and click **+ Add Plugin**.
 2. Enter the npm package name:
    ```text
-   dsh-no-workspace
+   @neoxuxo/dsh-no-workspace
    ```
 3. Click **Install**.
 
@@ -46,10 +46,10 @@ You can also install from npm or a `.tgz` archive downloaded from [GitHub Releas
 
 ```powershell
 # Install from npm
-dsh plugin add dsh-no-workspace
+dsh plugin add @neoxuxo/dsh-no-workspace
 
 # Or install from a downloaded .tgz package (use file:, not link:)
-dsh plugin add "file:$(Resolve-Path '.\dsh-no-workspace-<version>.tgz')"
+dsh plugin add "file:$(Resolve-Path '.\neoxuxo-dsh-no-workspace-<version>.tgz')"
 ```
 
 If you are building from source:

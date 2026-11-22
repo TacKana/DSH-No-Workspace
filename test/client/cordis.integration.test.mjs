@@ -108,7 +108,7 @@ ctx.reflect.provide('workspaces', { list: workspacesList })
 
 const plugin = spec.factory(() => { throw new Error('unexpected require') })
 plugin.apply(ctx)
-assert(spec.id === 'dsh-no-workspace', 'module id')
+assert(spec.id === '@neoxuxo/dsh-no-workspace', 'module id')
 assert(Object.prototype.hasOwnProperty.call(workspace, 'startSession'), 'instance startSession installed')
 assert(Object.prototype.hasOwnProperty.call(workspace, 'openWorkspace'), 'instance openWorkspace installed')
 

@@ -1,5 +1,5 @@
 {
-	"name": "dsh-no-workspace",
+	"name": "@neoxuxo/dsh-no-workspace",
 	"version": "0.2.0",
 	"description": "Create a private working directory for each new DSH conversation.",
 	"license": "Apache-2.0",

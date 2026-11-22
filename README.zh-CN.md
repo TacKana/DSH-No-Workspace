@@ -12,7 +12,7 @@
 
 ## 这个软件是做什么的
 
-**DSH 无工作区对话**（`dsh-no-workspace`）是一个为 **DeepSeek Harness (DSH)** 开发的插件，用于在每次新建对话时自动分配独立的工作目录，无需提前手动创建或选择工作区：
+**DSH 无工作区对话**（`@neoxuxo/dsh-no-workspace`）是一个为 **DeepSeek Harness (DSH)** 开发的插件，用于在每次新建对话时自动分配独立的工作目录，无需提前手动创建或选择工作区：
 
 - **开箱即用的独立目录**：在 DSH 侧边栏点击全局「新建会话」或使用原生快捷键即可直接输入并发送消息。插件会在后台为该对话自动创建 `dsh-chat-<会话 ID>` 文件夹作为工作目录。
 - **保持工作区列表整洁**：自动创建的目录会作为 DSH 原生会话的工作目录保存，会话归类在「未分组」中，不会添加到侧边栏的工作区列表或工作区计数里。空白对话顶部的目录标签显示「不在工作区中工作」，不会暴露底层目录名。
@@ -34,7 +34,7 @@
 1. 打开 DSH 的「插件」页面，点击右上角 **+ 添加插件**。
 2. 在输入框中填入 npm 包名：
    ```text
-   dsh-no-workspace
+   @neoxuxo/dsh-no-workspace
    ```
 3. 点击 **安装** 即可。
 
@@ -46,10 +46,10 @@
 
 ```powershell
 # 从 npm 安装
-dsh plugin add dsh-no-workspace
+dsh plugin add @neoxuxo/dsh-no-workspace
 
 # 或使用下载的 .tgz 安装包（必须使用 file:，不能使用 link:）
-dsh plugin add "file:$(Resolve-Path '.\dsh-no-workspace-<版本号>.tgz')"
+dsh plugin add "file:$(Resolve-Path '.\neoxuxo-dsh-no-workspace-<版本号>.tgz')"
 ```
 
 如需从源码自行构建打包：
