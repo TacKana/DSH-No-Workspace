@@ -104,6 +104,10 @@ npm test           # 客户端单元测试 + Cordis 集成测试
 - 「不使用工作区」菜单项通过在原生选择器菜单打开时复制「添加工作区」一行并替换图标为 `dsw-icon-close-outline-regular` 实现；输入框聚焦调用 `conversation.input.focus()`，拦截逻辑包装了 `uiWorkspace.startSession` / `openWorkspace`。这些均属于 DSH 内部实现而非公开扩展点，DSH 升级后需重新验证。
 - 如需更换菜单图标，修改 `src/client/options.ts` 中的 `NO_WORKSPACE_ICON` 常量并重新构建即可（运行 `node test/icon-gallery.mjs 图标.png` 可渲染 DSH 内置全部图标供挑选）。
 
+## 友情链接
+
+- [LINUX DO](https://linux.do/) - 真诚、友善、团结、专业，共建你我引以为荣之社区。
+
 ## 许可协议
 
 本项目采用 [Apache License 2.0](LICENSE)（`Apache-2.0`）开源协议。

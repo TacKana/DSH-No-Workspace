@@ -102,6 +102,10 @@ npm test           # Client unit tests + Cordis integration test
 - The **Use no workspace** menu item is cloned from DSH's native *Add Workspace* menu row with its icon replaced by `dsw-icon-close-outline-regular`. This relies on DSH's internal DOM structure, `data-icon` naming, `conversation.input.focus()`, and wrapping `uiWorkspace.startSession` / `openWorkspace`. These are internal DSH implementation details rather than public extension APIs and should be re-verified when upgrading DSH.
 - To customize the icon, update `NO_WORKSPACE_ICON` in `src/client/options.ts` and rebuild (`node test/icon-gallery.mjs icon.png` renders all built-in DSH icons for reference).
 
+## Friendly Links
+
+- [LINUX DO](https://linux.do/) - A warm, sincere, and open-hearted tech community.
+
 ## License
 
 This project is licensed under the [Apache License 2.0](LICENSE) (`Apache-2.0`).
